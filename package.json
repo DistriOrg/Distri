@@ -1,0 +1,23 @@
+{
+  "name": "distri",
+  "version": "1.0.0",
+  "description": "Volunteer computing for the brower",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Flarp/Distri-Node.git"
+  },
+  "author": "Flarp",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Flarp/Distri-Node/issues"
+  },
+  "homepage": "https://github.com/Flarp/Distri-Node#readme",
+  "dependencies": {
+    "object-hash": "^1.3.0",
+    "ws": "^5.1.0"
+  }
+}
