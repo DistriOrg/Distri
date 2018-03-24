@@ -15,31 +15,33 @@ class Distri extends ws.Server {
 
             socket.send(JSON.stringify({ file }));
             socket.on('message', message => {
-                const temp = this.session.get(socket.work) 
                 // if the user has no work, there's no point
                 // checking their result
-                if (socket.work !== NO_WORK) {
-                    const solution = JSON.decode(message)
+                if (this.session.has(socket.work)) {
+                    const work = socket.work
+                    const temp = this.session.get(work)
+                    const solution = JSON.parse(message)
                     temp.workers--
-                    temp.solutions(solution)
+                    temp.solutions.push(solution)
                     if (temp.solutions.length === strength) {
-                        this.emit('workgroup_complete', socket.work, temp.solutions)
-                        this.session.delete(socket.work)
+                        this.emit('workgroup_complete', work, temp.solutions)
+                        this.session.delete(work)
+
+                        // anticipating edge case where strength is 1
+                        this.available.delete(work)
                         if (this.session.size === 0) {
                             this.emit('all_work_complete')
                         }
                     } else {
-                        this.session.set(socket.work, temp)
+                        this.session.set(work, temp)
                     }
                 }
-               
-                 
                 this.serveSocket(socket)
             })
 
             socket.on('close', _ => {
                 this.waiting.delete(socket)
-                if (current_work !== NO_WORK) {
+                if (this.session.has(socket.work)) {
                     const temp = this.session.get(current_work)
                     temp.workers--
                     this.session.set(current_work, temp)
@@ -60,29 +62,28 @@ class Distri extends ws.Server {
 
     serveSocket(socket) {
         if (this.available.size > 0) {
-            const last_work = socket.work
             socket.work = Array.from(this.available)[Math.floor(Math.random() * this.available.size)]
-            socket.send(JSON.stringify(current_work))
-            if (last_work !== NO_WORK) {
-                const temp = this.session.get(last_work)
-                if (( temp.workers + temp.solutions.length) === this.strength) {
-                    this.available.delete(socket.work)
-                }
-                temp.workers++
-                this.session.set(current_work, temp)
+            console.log(socket.work)
+            const temp = this.session.get(socket.work)
+            if (( temp.workers + temp.solutions.length) === this.strength) {
+                this.available.delete(last_work)
             }
+            temp.workers++
+            this.session.set(socket.work, temp)
+            socket.send(JSON.stringify(socket.work))
         } else {
             socket.work = NO_WORK
             this.waiting.add(socket)
+            console.log('hih')
         }
     }
 
     serveTheHungry() {
         for (x in this.waiting) {
-            serveSocket(x)
+            this.serveSocket(x)
         }
     }
     
 }
 
-new Distri({ port: 3000 }, 'console.log("sup")', 1)
+module.exports = Distri
