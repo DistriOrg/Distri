@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/Flarp/Distri-Node#readme",
   "dependencies": {
-    "hashmap": "^2.3.0",
     "ws": "^5.1.0"
   }
 }

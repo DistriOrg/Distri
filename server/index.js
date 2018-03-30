@@ -10,20 +10,12 @@ class Distri extends ws.Server {
 
         this.on('connection', socket => {
             socket.work = NO_WORK
-
-            socket.send(JSON.stringify({ file }));
+            
+            socket.send(file)
             socket.on('message', message => {
-                
-                if (this.session.has(socket.work)) {
-                    const work = socket.work
-                    let solution
-                    try {
-                        solution = JSON.parse(solution)
-                        this.emit('workgroup_complete', work, solution)
-                        if (this.session.size === 0) this.emit('all_work_complete')
-                    } catch (e) {
-                        
-                    }
+                if (socket.work !== NO_WORK) {
+                    this.emit('workgroup_complete', socket.work, message)
+                    if (this.session.size === 0) this.emit('all_work_complete')
                 }
                 this.serveSocket(socket)
             })
@@ -47,7 +39,7 @@ class Distri extends ws.Server {
         if (this.session.size > 0) {
             socket.work = Array.from(this.session)[Math.floor(Math.random() * this.session.size)]
             this.session.delete(socket.work)
-            socket.send(JSON.stringify(socket.work))
+            socket.send(socket.work)
         } else {
             socket.work = NO_WORK
             this.waiting.add(socket)
