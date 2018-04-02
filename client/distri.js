@@ -128,8 +128,10 @@ window.Distri.start = _ => {
                     socket.send(res.data)
                 }
                 worker.onerror = _ => {
-                    worker.terminate()
                     socket.close()
+                }
+                socket.onclose = _ => {
+                    worker.terminate()
                 }
             }
         }
