@@ -7,15 +7,18 @@ class Distri extends ws.Server {
 
         this.session = new Set()
         this.waiting = new Set()
+        this.workers = 0
 
         this.on('connection', socket => {
             socket.work = NO_WORK
             
             socket.send(file)
+            this.workers++
             socket.on('message', message => {
+                this.workers--
                 if (socket.work !== NO_WORK) {
                     this.emit('workgroup_complete', socket.work, message)
-                    if (this.session.size === 0) this.emit('all_work_complete')
+                    if (this.session.size === 0 && this.workers === 0) this.emit('all_work_complete')
                 }
                 this.serveSocket(socket)
             })
@@ -23,6 +26,7 @@ class Distri extends ws.Server {
             socket.on('close', _ => {
                 this.waiting.delete(socket)
                 if (socket.work !== NO_WORK) {
+                    this.workers--
                     this.session.add(socket.work)
                 }
                 this.serveTheHungry()
@@ -40,6 +44,7 @@ class Distri extends ws.Server {
             socket.work = Array.from(this.session)[Math.floor(Math.random() * this.session.size)]
             this.session.delete(socket.work)
             socket.send(socket.work)
+            this.workers++
         } else {
             socket.work = NO_WORK
             this.waiting.add(socket)
