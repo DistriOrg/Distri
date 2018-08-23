@@ -121,18 +121,10 @@ window.Distri.start = _ => {
             socket.onmessage = m => {
                 worker = new Worker(URL.createObjectURL(new Blob([m.data])))
                 socket.send('ready')
-                socket.onmessage = m => {
-                    worker.postMessage(m.data)
-                }
-                worker.onmessage = res => {
-                    socket.send(res.data)
-                }
-                worker.onerror = _ => {
-                    socket.close()
-                }
-                socket.onclose = _ => {
-                    worker.terminate()
-                }
+                socket.onmessage = m => worker.postMessage(m.data)
+                worker.onmessage = res => socket.send(res.data)
+                worker.onerror = socket.close
+                socket.onclose = worker.terminate
             }
         }
     }
